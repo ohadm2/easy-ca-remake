@@ -15,7 +15,7 @@ usage() {
 CLIENT_NAME=
 CA_DIR=
 
-while getopts 'n:c:' OPTION; do
+while getopts n:c: OPTION; do
     case $OPTION in
         n) CLIENT_NAME=${OPTARG} ;;
         c) CA_DIR=${OPTARG} ;;
@@ -47,6 +47,8 @@ fi
 echo
 echo "Creating new client certificate for '${CLIENT_NAME}'"
 echo
+
+pwd
 
 pushd -n ${BIN_DIR}/.. > /dev/null
 

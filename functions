@@ -3,12 +3,13 @@
 
 # Binaries copied during install
 BINARIES="
-create-root-ca
-create-sub-ca
-create-server
-create-client
+create-root-ca.sh
+create-sub-ca.sh
+create-server-cert.sh
+create-client-cert.sh
 revoke-cert
 functions
+pem-and-key-to-pfx.sh
 "
 
 

@@ -15,7 +15,7 @@ usage() {
 SUBCA_DIR=
 ROOT_CA_DIR=
 
-while getopts 's:c:' OPTION; do
+while getopts s:c: OPTION; do
     case $OPTION in
         s) SUBCA_DIR=${OPTARG} ;;
         c) ROOT_CA_DIR=${OPTARG} ;;        
@@ -71,6 +71,8 @@ read -s PARENT_PASS
 echo
 export CA_PARENT_PASS=${PARENT_PASS}
 
+pushd . > /dev/null
+
 # Fully-qualify home so we can return to it later
 HOME=$( cd "${HOME}" && pwd )
 
@@ -81,9 +83,9 @@ echo Generate the signing CA openssl config
 echo --------------------------------------------
 
 # for the template to be updated ...
-CA_ROOT_DIR=${SUBCA_DIR}
+#CA_ROOT_DIR=`realpath ${SUBCA_DIR}`
 
-template "${BIN_DIR}/templates/signing.tpl" "conf/ca.conf"
+template "${BIN_DIR}/templates/sub-ca.tpl" "conf/ca.conf"
 
 echo
 echo Create the signing CA key
@@ -109,9 +111,13 @@ echo --------------------------------------------
 
 echo SAN=$SAN
 
-openssl ca -batch -notext -config ${ROOT_CA_DIR}/conf/ca.conf \
+popd 
+
+cd "$ROOT_CA_DIR"
+
+openssl ca -batch -notext -config conf/ca.conf \
            -in ${HOME}/ca/ca.csr \
-           -out ${ROOT_CA_DIR}/ca/subca.crt \
+           -out ca/root-for-subca.crt \
            -days 3652 \
            -extensions signing_ca_ext \
            -passin env:CA_PARENT_PASS
@@ -122,9 +128,9 @@ echo
 echo Create the chain bundle for the sub-CA
 echo --------------------------------------------
 
-cat ${ROOT_CA_DIR}/ca/ca.crt ${ROOT_CA_DIR}/ca/subca.crt >> ${HOME}/ca/subCa_chain.crt
+cat ca/ca.crt ca/root-for-subca.crt >> ${HOME}/ca/subCa_chain.crt
 
-cp ${ROOT_CA_DIR}/ca/subca.crt ${HOME}/ca/ca.crt
+cp ca/root-for-subca.crt ${HOME}/ca/ca.crt
 
 
 echo
@@ -132,8 +138,8 @@ echo Create the signing CRL
 echo --------------------------------------------
 
 openssl ca -gencrl -batch \
-           -config ${HOME}/conf/ca.conf \
-           -out ${HOME}/crl/ca.crl
+           -config conf/ca.conf \
+           -out crl/ca.crl
 
 
 for BIN in ${BINARIES}; do

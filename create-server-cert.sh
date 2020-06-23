@@ -17,7 +17,7 @@ CA_DIR=
 SERVER_NAME=
 ALT_NAME=
 
-while getopts s:a: FLAG; do
+while getopts s:a:c: FLAG; do
     case $FLAG in
         s) SERVER_NAME=${OPTARG}
            if [ -z "${ALT_NAME}" ]; then
@@ -58,7 +58,7 @@ if ! [ -f ${CA_DIR}/conf/ca.conf ]; then
     
     exit 1
 else
-    cd ${CA_DIR}
+    cd ${CA_DIR}	
 fi
 
 echo

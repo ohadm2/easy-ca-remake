@@ -2,20 +2,20 @@
 # Derek Moore <derek.moore@gmail.com>
 
 usage() {
-    echo "Usage: $0 -d CA_DIR"
+    echo "Usage: $0 -c CA_DIR"
     echo "Initializes a new root CA in CA_DIR"
     echo
     echo "Options:"
-    echo "    -d CA_DIR  Target directory to be created and initialized"
+    echo "    -c CA_DIR  Target directory to be created and initialized"
     echo
     exit 2
 }
 
 CA_DIR=
 
-while getopts d: FLAG; do
+while getopts c: FLAG; do
     case $FLAG in
-        d) CA_DIR=${OPTARG} ;;
+        c) CA_DIR=${OPTARG} ;;
         *) usage ;;
     esac
 done
@@ -57,12 +57,29 @@ export CA_PASS=${PASS1}
 
 pushd ${HOME} > /dev/null
 
+
+echo
+echo Generate the signing CA openssl config
+echo --------------------------------------------
+
 # Generate the root CA openssl config
-template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
+template "${BIN_DIR}/templates/root-ca.tpl" "conf/ca.conf"
+
+
+# for the template to be updated ...
+#CA_ROOT_DIR=`realpath ${CA_DIR}`
+
+echo
+echo Create the signing CA key
+echo --------------------------------------------
 
 # Create the root CA csr
 openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 4096
 chmod 0400 ca/private/ca.key
+
+echo
+echo Create the signing CA csr
+echo --------------------------------------------
 
 # Create the root CA csr
 openssl req -new -batch \
@@ -70,6 +87,9 @@ openssl req -new -batch \
             -key ca/private/ca.key \
             -out ca/ca.csr \
             -passin env:CA_PASS
+
+echo Create the signing CA certificate
+echo --------------------------------------------
 
 # Create the root CA certificate
 openssl ca -selfsign -batch -notext \
